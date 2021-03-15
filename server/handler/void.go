@@ -3,24 +3,38 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-
-	uuid "github.com/satori/go.uuid"
 )
 
-func VoidEndpoint() http.Handler {
+type VoidRequest struct {
+	ID string `json:"id"`
+}
+
+type VoidResponse struct {
+	Success  bool   `json:"success"`
+	Message  string `json:"message,omitempty"`
+	Amount   int    `json:"remaining_amount,omitempty"`
+	Currency string `json:"currency,omitempty"`
+}
+
+func VoidEndpoint(gateway Gateway) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := AuthorizeRequest{}
+		request := VoidRequest{}
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		response := AuthorizeResponse{
-			ID:       uuid.NewV4().String(),
-			Success:  true,
-			Amount:   200,
-			Currency: "GBP",
+		remaining, currency, err := gateway.VoidTransaction(request.ID)
+
+		response := VoidResponse{}
+
+		if err == nil {
+			response.Success = true
+			response.Amount = remaining
+			response.Currency = currency
+		} else {
+			response.Message = err.Error()
 		}
 
 		w.Header().Set("Content-Type", "application/json")

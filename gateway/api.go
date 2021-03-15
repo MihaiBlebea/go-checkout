@@ -25,3 +25,7 @@ func (s *Service) AuthorizePayment(options AuthorizeOptions) (string, error) {
 func (s *Service) CaptureAmount(id string, amount int, currency string) (int, string, error) {
 	return s.captureAmount(id, amount, currency)
 }
+
+func (s *Service) VoidTransaction(id string) (int, string, error) {
+	return s.voidTransaction(id)
+}

@@ -20,7 +20,7 @@ func (s *Service) captureAmount(id string, amount int, currency string) (int, st
 
 	trans.captured += amount
 
-	return trans.amount - amount, trans.currency, nil
+	return trans.amount - trans.captured, trans.currency, nil
 }
 
 func (s *Service) getTransactionByID(id string) (*transaction, error) {
@@ -30,7 +30,7 @@ func (s *Service) getTransactionByID(id string) (*transaction, error) {
 		}
 	}
 
-	return &transaction{}, nil
+	return &transaction{}, InvalidTransactionErr
 }
 
 func validateAvailableAmount(trans transaction, amount int) error {

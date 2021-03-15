@@ -28,7 +28,7 @@ func NewServer(gateway Gateway) {
 	r.Handle("/capture", loggerMiddleware(handler.CaptureEndpoint(gateway))).
 		Methods("POST")
 
-	r.Handle("/void", loggerMiddleware(handler.VoidEndpoint())).
+	r.Handle("/void", loggerMiddleware(handler.VoidEndpoint(gateway))).
 		Methods("POST")
 
 	r.Handle("/refund", loggerMiddleware(handler.RefundEndpoint())).
