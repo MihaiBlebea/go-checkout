@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/MihaiBlebea/go-checkout/server/handler"
-	"github.com/MihaiBlebea/go-checkout/server/resp"
 	"github.com/MihaiBlebea/go-checkout/server/validate"
 	"github.com/gorilla/mux"
 )
@@ -23,19 +22,19 @@ func NewServer(gateway Gateway) {
 	r.Handle("/health-check", loggerMiddleware(handler.HealthEndpoint())).
 		Methods("GET")
 
-	r.Handle("/authorize", loggerMiddleware(handler.AuthorizeEndpoint(gateway, validate.Validate, resp.ErrorResponse))).
+	r.Handle("/authorize", loggerMiddleware(handler.AuthorizeEndpoint(gateway, validate.Validate))).
 		Methods("POST")
 
-	r.Handle("/capture", loggerMiddleware(handler.CaptureEndpoint(gateway, validate.Validate, resp.ErrorResponse))).
+	r.Handle("/capture", loggerMiddleware(handler.CaptureEndpoint(gateway, validate.Validate))).
 		Methods("POST")
 
-	r.Handle("/void", loggerMiddleware(handler.VoidEndpoint(gateway, validate.Validate, resp.ErrorResponse))).
+	r.Handle("/void", loggerMiddleware(handler.VoidEndpoint(gateway, validate.Validate))).
 		Methods("POST")
 
-	r.Handle("/refund", loggerMiddleware(handler.RefundEndpoint(gateway, validate.Validate, resp.ErrorResponse))).
+	r.Handle("/refund", loggerMiddleware(handler.RefundEndpoint(gateway, validate.Validate))).
 		Methods("POST")
 
-	r.Handle("/transactions", loggerMiddleware(handler.ListEndpoint(gateway, validate.Validate, resp.ErrorResponse))).
+	r.Handle("/transactions", loggerMiddleware(handler.ListEndpoint(gateway, validate.Validate))).
 		Methods("GET")
 
 	srv := &http.Server{

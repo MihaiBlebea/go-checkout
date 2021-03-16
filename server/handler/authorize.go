@@ -25,7 +25,7 @@ type AuthorizeResponse struct {
 	Currency string `json:"currency,omitempty"`
 }
 
-func AuthorizeEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse) http.Handler {
+func AuthorizeEndpoint(gateway Gateway, validator Validator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := AuthorizeRequest{}
 		response := AuthorizeResponse{}
@@ -33,16 +33,14 @@ func AuthorizeEndpoint(gateway Gateway, validator Validator, errorResp ErrorResp
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			response.Message = err.Error()
-			response.Success = false
-			errorResp(w, response, http.StatusBadRequest)
+			sendResponse(w, response, http.StatusBadRequest)
 			return
 		}
 
 		err = validator(&request)
 		if err != nil {
 			response.Message = err.Error()
-			response.Success = false
-			errorResp(w, response, http.StatusBadRequest)
+			sendResponse(w, response, http.StatusBadRequest)
 			return
 		}
 
@@ -55,17 +53,16 @@ func AuthorizeEndpoint(gateway Gateway, validator Validator, errorResp ErrorResp
 			Amount:      request.Amount,
 			Currency:    request.Currency,
 		})
-
-		if err == nil {
-			response.ID = token
-			response.Success = true
-			response.Amount = request.Amount
-			response.Currency = request.Currency
-		} else {
+		if err != nil {
 			response.Message = err.Error()
+			sendResponse(w, response, http.StatusBadRequest)
+			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		response.ID = token
+		response.Success = true
+		response.Amount = request.Amount
+		response.Currency = request.Currency
+		sendResponse(w, response, 200)
 	})
 }

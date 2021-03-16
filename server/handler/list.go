@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 
 	gtway "github.com/MihaiBlebea/go-checkout/gateway"
@@ -15,7 +14,7 @@ type ListResponse struct {
 	Transactions []gtway.Transaction `json:"transactions"`
 }
 
-func ListEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse) http.Handler {
+func ListEndpoint(gateway Gateway, validator Validator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := ListResponse{}
 
@@ -24,7 +23,6 @@ func ListEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse)
 		response.Success = true
 		response.Transactions = transactions
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		sendResponse(w, &response, http.StatusOK)
 	})
 }

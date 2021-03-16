@@ -3,6 +3,7 @@ package server_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -11,7 +12,6 @@ import (
 	gtway "github.com/MihaiBlebea/go-checkout/gateway"
 	"github.com/MihaiBlebea/go-checkout/server/handler"
 	hand "github.com/MihaiBlebea/go-checkout/server/handler"
-	"github.com/MihaiBlebea/go-checkout/server/resp"
 	"github.com/MihaiBlebea/go-checkout/server/validate"
 )
 
@@ -45,7 +45,7 @@ func TestHealthCheckEndpoint(t *testing.T) {
 }
 
 func TestAuthorizeEndpoint(t *testing.T) {
-	body := hand.AuthorizeRequest{
+	requestSuccess := hand.AuthorizeRequest{
 		NameOnCard:  "Mihai Blebea",
 		CardNumber:  "4000 0000 0000 0259",
 		ExpireYear:  2022,
@@ -55,51 +55,115 @@ func TestAuthorizeEndpoint(t *testing.T) {
 		Currency:    "GBP",
 	}
 
-	b, err := json.Marshal(body)
-	if err != nil {
-		t.Fatal()
+	responseSuccess := hand.AuthorizeResponse{
+		Success:  true,
+		Message:  "",
+		Amount:   200,
+		Currency: "GBP",
 	}
 
-	req, err := http.NewRequest("POST", "/authorize", bytes.NewBuffer(b))
-	if err != nil {
-		t.Fatal(err)
+	requestFailingCard := hand.AuthorizeRequest{
+		NameOnCard:  "Mihai Blebea",
+		CardNumber:  "4000 0000 0000 0119",
+		ExpireYear:  2022,
+		ExpireMonth: 4,
+		CVV:         "755",
+		Amount:      200,
+		Currency:    "GBP",
 	}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(
-		hand.AuthorizeEndpoint(gtway.New(), validate.Validate, resp.ErrorResponse).ServeHTTP,
-	)
-
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	responseFailingCard := hand.AuthorizeResponse{
+		Success:  false,
+		Message:  "Authorisation failed",
+		Amount:   0,
+		Currency: "",
 	}
 
-	var response hand.AuthorizeResponse
-	err = json.Unmarshal(rr.Body.Bytes(), &response)
-	if err != nil {
-		t.Fatal(err)
+	requestMissingKey := hand.AuthorizeRequest{
+		NameOnCard: "Mihai Blebea",
+		CardNumber: "4000 0000 0000 0119",
+		CVV:        "755",
+		Amount:     200,
+		Currency:   "GBP",
 	}
 
-	if response.Success != true {
-		t.Errorf("response success key: got %v want %v", response.Success, true)
+	responseMissingKey := hand.AuthorizeResponse{
+		Success:  false,
+		Message:  "Field ExpireYear is required",
+		Amount:   0,
+		Currency: "",
 	}
 
-	if response.Message != "" {
-		t.Errorf("response message key: got %v want %v", response.Message, "")
+	cases := []struct {
+		input hand.AuthorizeRequest
+		want  hand.AuthorizeResponse
+		code  int
+	}{
+		{
+			input: requestSuccess,
+			want:  responseSuccess,
+			code:  200,
+		},
+		{
+			input: requestFailingCard,
+			want:  responseFailingCard,
+			code:  400,
+		},
+		{
+			input: requestMissingKey,
+			want:  responseMissingKey,
+			code:  400,
+		},
 	}
 
-	if isValidUUID(response.ID) != true {
-		t.Errorf("response id is valid uuid format: got %v want %v", isValidUUID(response.ID), true)
-	}
+	for _, c := range cases {
+		b, err := json.Marshal(c.input)
+		if err != nil {
+			t.Fatal()
+		}
 
-	if response.Amount != body.Amount {
-		t.Errorf("response amount key: got %v want %v", response.Amount, body.Amount)
-	}
+		req, err := http.NewRequest("POST", "/authorize", bytes.NewBuffer(b))
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	if response.Currency != body.Currency {
-		t.Errorf("response amount key: got %v want %v", response.Currency, body.Currency)
+		rr := httptest.NewRecorder()
+		handler := http.HandlerFunc(
+			hand.AuthorizeEndpoint(gtway.New(), validate.Validate).ServeHTTP,
+		)
+
+		handler.ServeHTTP(rr, req)
+
+		fmt.Println(rr.Code != c.code, rr.Code, c.code)
+		if status := rr.Code; status != c.code {
+			t.Errorf("http status code: got %d want %d", rr.Code, http.StatusOK)
+		}
+
+		var response hand.AuthorizeResponse
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if response.Success != c.want.Success {
+			t.Errorf("response success key: got %v want %v", response.Success, c.want.Success)
+		}
+
+		if response.Message != c.want.Message {
+			t.Errorf("response message key: got %v want %v", response.Message, c.want.Message)
+		}
+
+		if response.ID != "" && isValidUUID(response.ID) != true {
+			t.Errorf("response id is valid uuid format: got %v want %v", isValidUUID(response.ID), true)
+		}
+
+		if response.Amount != c.want.Amount {
+			t.Errorf("response amount key: got %v want %v", response.Amount, c.want.Amount)
+		}
+
+		if response.Currency != c.want.Currency {
+			t.Errorf("response amount key: got %v want %v", response.Currency, c.want.Currency)
+		}
 	}
 }
 
