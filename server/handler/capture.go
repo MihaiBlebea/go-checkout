@@ -6,9 +6,9 @@ import (
 )
 
 type CaptureRequest struct {
-	ID       string `json:"id"`
-	Amount   int    `json:"amount"`
-	Currency string `json:"currency"`
+	ID       string `json:"id" validate:"required"`
+	Amount   int    `json:"amount" validate:"required"`
+	Currency string `json:"currency" validate:"required"`
 }
 
 type CaptureResponse struct {
@@ -18,23 +18,24 @@ type CaptureResponse struct {
 	Currency string `json:"currency,omitempty"`
 }
 
-func CaptureEndpoint(gateway Gateway) http.Handler {
+func CaptureEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := CaptureRequest{}
+		response := CaptureResponse{}
+
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			response.Message = err.Error()
+			response.Success = false
+			errorResp(w, response, http.StatusBadRequest)
 		}
 
-		remaining, _, err := gateway.CaptureAmount(request.ID, request.Amount, request.Currency)
-
-		response := CaptureResponse{}
+		remaining, currency, err := gateway.CaptureAmount(request.ID, request.Amount, request.Currency)
 
 		if err == nil {
 			response.Success = true
 			response.Amount = remaining
-			response.Currency = request.Currency
+			response.Currency = currency
 		} else {
 			response.Message = err.Error()
 		}

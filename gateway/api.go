@@ -1,7 +1,7 @@
 package gateway
 
 type Service struct {
-	transactions []transaction
+	transactions map[string]transaction
 }
 
 type AuthorizeOptions struct {
@@ -14,8 +14,17 @@ type AuthorizeOptions struct {
 	Currency    string `json:"currency"`
 }
 
+type Transaction struct {
+	ID       string
+	Amount   int
+	Currency string
+	Voided   bool
+	Refunded int
+	Captured int
+}
+
 func New() *Service {
-	return &Service{}
+	return &Service{make(map[string]transaction)}
 }
 
 func (s *Service) AuthorizePayment(options AuthorizeOptions) (string, error) {
@@ -28,4 +37,23 @@ func (s *Service) CaptureAmount(id string, amount int, currency string) (int, st
 
 func (s *Service) VoidTransaction(id string) (int, string, error) {
 	return s.voidTransaction(id)
+}
+
+func (s *Service) RefundAmount(id string, amount int, currency string) (int, string, error) {
+	return s.refundAmount(id, amount, currency)
+}
+
+func (s *Service) ListTransactions() (transactions []Transaction) {
+	for _, trans := range s.transactions {
+		transactions = append(transactions, Transaction{
+			ID:       trans.id,
+			Amount:   trans.amount,
+			Currency: trans.currency,
+			Voided:   trans.voided,
+			Refunded: trans.refunded,
+			Captured: trans.captured,
+		})
+	}
+
+	return transactions
 }

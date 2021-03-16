@@ -8,13 +8,13 @@ import (
 )
 
 type AuthorizeRequest struct {
-	NameOnCard  string `json:"name_on_card"`
-	CardNumber  string `json:"card_number"`
-	ExpireYear  int    `json:"expire_year"`
-	ExpireMonth int    `json:"expire_month"`
-	CVV         string `json:"cvv"`
-	Amount      int    `json:"amount"`
-	Currency    string `json:"currency"`
+	NameOnCard  string `json:"name_on_card" validate:"required"`
+	CardNumber  string `json:"card_number" validate:"required"`
+	ExpireYear  int    `json:"expire_year" validate:"required"`
+	ExpireMonth int    `json:"expire_month" validate:"required"`
+	CVV         string `json:"cvv" validate:"required"`
+	Amount      int    `json:"amount" validate:"required"`
+	Currency    string `json:"currency" validate:"required"`
 }
 
 type AuthorizeResponse struct {
@@ -25,12 +25,24 @@ type AuthorizeResponse struct {
 	Currency string `json:"currency,omitempty"`
 }
 
-func AuthorizeEndpoint(gateway Gateway) http.Handler {
+func AuthorizeEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := AuthorizeRequest{}
+		response := AuthorizeResponse{}
+
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			response.Message = err.Error()
+			response.Success = false
+			errorResp(w, response, http.StatusBadRequest)
+			return
+		}
+
+		err = validator(&request)
+		if err != nil {
+			response.Message = err.Error()
+			response.Success = false
+			errorResp(w, response, http.StatusBadRequest)
 			return
 		}
 
@@ -44,9 +56,8 @@ func AuthorizeEndpoint(gateway Gateway) http.Handler {
 			Currency:    request.Currency,
 		})
 
-		response := AuthorizeResponse{ID: token}
-
 		if err == nil {
+			response.ID = token
 			response.Success = true
 			response.Amount = request.Amount
 			response.Currency = request.Currency

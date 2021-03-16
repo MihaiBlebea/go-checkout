@@ -6,7 +6,7 @@ import (
 )
 
 type VoidRequest struct {
-	ID string `json:"id"`
+	ID string `json:"id" validate:"required"`
 }
 
 type VoidResponse struct {
@@ -16,18 +16,19 @@ type VoidResponse struct {
 	Currency string `json:"currency,omitempty"`
 }
 
-func VoidEndpoint(gateway Gateway) http.Handler {
+func VoidEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := VoidRequest{}
+		response := VoidResponse{}
+
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			response.Message = err.Error()
+			response.Success = false
+			errorResp(w, response, http.StatusBadRequest)
 		}
 
 		remaining, currency, err := gateway.VoidTransaction(request.ID)
-
-		response := VoidResponse{}
 
 		if err == nil {
 			response.Success = true

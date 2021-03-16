@@ -1,36 +1,45 @@
 package gateway
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	InvalidTransactionErr error = errors.New("Invalid transaction id")
 	UnavailableAmountErr  error = errors.New("Unavailable amount to capture")
 	InvalidCurrencyErr    error = errors.New("Invalid currency")
+	TransactionVoidedErr  error = errors.New("Transaction is voided")
 )
 
 func (s *Service) captureAmount(id string, amount int, currency string) (int, string, error) {
-	trans, err := s.getTransactionByID(id)
-	if err != nil {
+	if err := s.validateTransactionID(id); err != nil {
 		return 0, "", err
 	}
 
-	if err := validateAvailableAmount(*trans, amount); err != nil {
+	trans := s.transactions[id]
+
+	if err := validateAvailableAmount(trans, amount); err != nil {
 		return 0, "", err
+	}
+
+	if trans.voided == true {
+		return 0, "", TransactionVoidedErr
 	}
 
 	trans.captured += amount
 
+	s.transactions[id] = trans
+
 	return trans.amount - trans.captured, trans.currency, nil
 }
 
-func (s *Service) getTransactionByID(id string) (*transaction, error) {
-	for _, trans := range s.transactions {
-		if trans.id == id {
-			return &trans, nil
-		}
+func (s *Service) validateTransactionID(id string) error {
+	_, ok := s.transactions[id]
+	if ok == false {
+		return InvalidTransactionErr
 	}
 
-	return &transaction{}, InvalidTransactionErr
+	return nil
 }
 
 func validateAvailableAmount(trans transaction, amount int) error {

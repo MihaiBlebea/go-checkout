@@ -142,5 +142,5 @@ func genToken() string {
 }
 
 func (s *Service) storeCard(transaction transaction) {
-	s.transactions = append(s.transactions, transaction)
+	s.transactions[transaction.id] = transaction
 }
