@@ -12,7 +12,7 @@ type VoidRequest struct {
 type VoidResponse struct {
 	Success  bool   `json:"success"`
 	Message  string `json:"message,omitempty"`
-	Amount   int    `json:"remaining_amount,omitempty"`
+	Balance  int    `json:"balance,omitempty"`
 	Currency string `json:"currency,omitempty"`
 }
 
@@ -28,11 +28,11 @@ func VoidEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse)
 			errorResp(w, response, http.StatusBadRequest)
 		}
 
-		remaining, currency, err := gateway.VoidTransaction(request.ID)
+		balance, currency, err := gateway.VoidTransaction(request.ID)
 
 		if err == nil {
 			response.Success = true
-			response.Amount = remaining
+			response.Balance = balance
 			response.Currency = currency
 		} else {
 			response.Message = err.Error()

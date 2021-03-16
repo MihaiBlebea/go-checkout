@@ -17,15 +17,7 @@ type ListResponse struct {
 
 func ListEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// request := ListRequest{}
 		response := ListResponse{}
-
-		// err := json.NewDecoder(r.Body).Decode(&request)
-		// if err != nil {
-		// 	response.Message = err.Error()
-		// 	response.Success = false
-		// 	errorResp(w, response, http.StatusBadRequest)
-		// }
 
 		transactions := gateway.ListTransactions()
 

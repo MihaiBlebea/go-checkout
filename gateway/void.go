@@ -1,15 +1,15 @@
 package gateway
 
 func (s *Service) voidTransaction(id string) (int, string, error) {
-	if err := s.validateTransactionID(id); err != nil {
+	if err := validateTransactionID(s.transactions, id); err != nil {
 		return 0, "", err
 	}
 
 	trans := s.transactions[id]
 
-	trans.voided = true
+	trans.state = VoidState
 
 	s.transactions[id] = trans
 
-	return trans.amount - trans.captured, trans.currency, nil
+	return trans.captured, trans.currency, nil
 }

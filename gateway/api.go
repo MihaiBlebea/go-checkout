@@ -15,12 +15,12 @@ type AuthorizeOptions struct {
 }
 
 type Transaction struct {
-	ID       string
-	Amount   int
-	Currency string
-	Voided   bool
-	Refunded int
-	Captured int
+	ID       string          `json:"id"`
+	State    TransactioState `json:"state"`
+	Amount   int             `json:"amount"`
+	Captured int             `json:"captured"`
+	Refunded int             `json:"refunded"`
+	Currency string          `json:"currency"`
 }
 
 func New() *Service {
@@ -43,17 +43,6 @@ func (s *Service) RefundAmount(id string, amount int, currency string) (int, str
 	return s.refundAmount(id, amount, currency)
 }
 
-func (s *Service) ListTransactions() (transactions []Transaction) {
-	for _, trans := range s.transactions {
-		transactions = append(transactions, Transaction{
-			ID:       trans.id,
-			Amount:   trans.amount,
-			Currency: trans.currency,
-			Voided:   trans.voided,
-			Refunded: trans.refunded,
-			Captured: trans.captured,
-		})
-	}
-
-	return transactions
+func (s *Service) ListTransactions() []Transaction {
+	return s.list()
 }

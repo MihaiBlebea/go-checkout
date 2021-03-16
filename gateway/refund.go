@@ -1,23 +1,28 @@
 package gateway
 
 func (s *Service) refundAmount(id string, amount int, currency string) (int, string, error) {
-	if err := s.validateTransactionID(id); err != nil {
+	if err := validateTransactionID(s.transactions, id); err != nil {
 		return 0, "", err
 	}
 
 	trans := s.transactions[id]
 
-	if err := validateAvailableAmount(trans, amount); err != nil {
-		return 0, "", err
-	}
-
-	if trans.voided == true {
+	if trans.state != VoidState {
 		return 0, "", TransactionVoidedErr
 	}
 
+	trans.state = RefundState
 	trans.refunded += amount
+
+	if err := validateRefundAmount(&trans); err != nil {
+		return 0, "", err
+	}
 
 	s.transactions[id] = trans
 
-	return trans.amount - trans.captured, trans.currency, nil
+	return calcRemainRefundAmount(&trans), trans.currency, nil
+}
+
+func calcRemainRefundAmount(trans *transaction) int {
+	return trans.captured - trans.refunded
 }

@@ -18,10 +18,9 @@ const prefix = "/api/v1/"
 func NewServer(gateway Gateway) {
 	r := mux.NewRouter().
 		PathPrefix(prefix).
-		Headers("Content-Type", "application/json").
 		Subrouter()
 
-	r.Handle("/health", loggerMiddleware(handler.HealthEndpoint())).
+	r.Handle("/health-check", loggerMiddleware(handler.HealthEndpoint())).
 		Methods("GET")
 
 	r.Handle("/authorize", loggerMiddleware(handler.AuthorizeEndpoint(gateway, validate.Validate, resp.ErrorResponse))).

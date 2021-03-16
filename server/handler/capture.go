@@ -12,10 +12,10 @@ type CaptureRequest struct {
 }
 
 type CaptureResponse struct {
-	Success  bool   `json:"success"`
-	Message  string `json:"message,omitempty"`
-	Amount   int    `json:"remaining_amount,omitempty"`
-	Currency string `json:"currency,omitempty"`
+	Success   bool   `json:"success"`
+	Message   string `json:"message,omitempty"`
+	Remaining int    `json:"remaining,omitempty"`
+	Currency  string `json:"currency,omitempty"`
 }
 
 func CaptureEndpoint(gateway Gateway, validator Validator, errorResp ErrorResponse) http.Handler {
@@ -30,11 +30,11 @@ func CaptureEndpoint(gateway Gateway, validator Validator, errorResp ErrorRespon
 			errorResp(w, response, http.StatusBadRequest)
 		}
 
-		remaining, currency, err := gateway.CaptureAmount(request.ID, request.Amount, request.Currency)
+		remain, currency, err := gateway.CaptureAmount(request.ID, request.Amount, request.Currency)
 
 		if err == nil {
 			response.Success = true
-			response.Amount = remaining
+			response.Remaining = remain
 			response.Currency = currency
 		} else {
 			response.Message = err.Error()
