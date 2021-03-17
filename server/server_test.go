@@ -3,7 +3,6 @@ package server_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -15,6 +14,20 @@ import (
 	"github.com/MihaiBlebea/go-checkout/server/validate"
 )
 
+var logger *MuteLogger
+
+type MuteLogger struct{}
+
+func (l *MuteLogger) Info(args ...interface{})    {}
+func (l *MuteLogger) Trace(args ...interface{})   {}
+func (l *MuteLogger) Debug(args ...interface{})   {}
+func (l *MuteLogger) Print(args ...interface{})   {}
+func (l *MuteLogger) Warn(args ...interface{})    {}
+func (l *MuteLogger) Warning(args ...interface{}) {}
+func (l *MuteLogger) Error(args ...interface{})   {}
+func (l *MuteLogger) Fatal(args ...interface{})   {}
+func (l *MuteLogger) Panic(args ...interface{})   {}
+
 func TestHealthCheckEndpoint(t *testing.T) {
 	req, err := http.NewRequest("GET", "/health-check", nil)
 	if err != nil {
@@ -22,7 +35,7 @@ func TestHealthCheckEndpoint(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(handler.HealthEndpoint().ServeHTTP)
+	handler := http.HandlerFunc(handler.HealthEndpoint(logger).ServeHTTP)
 
 	handler.ServeHTTP(rr, req)
 
@@ -129,12 +142,11 @@ func TestAuthorizeEndpoint(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(
-			hand.AuthorizeEndpoint(gtway.New(), validate.Validate).ServeHTTP,
+			hand.AuthorizeEndpoint(gtway.New(), logger, validate.Validate).ServeHTTP,
 		)
 
 		handler.ServeHTTP(rr, req)
 
-		fmt.Println(rr.Code != c.code, rr.Code, c.code)
 		if status := rr.Code; status != c.code {
 			t.Errorf("http status code: got %d want %d", rr.Code, http.StatusOK)
 		}

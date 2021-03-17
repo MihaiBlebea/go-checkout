@@ -1,5 +1,7 @@
 package gateway
 
+import "sync"
+
 const (
 	AuthFailCard    string = "4000 0000 0000 0119"
 	CaptureFailCard string = "4000 0000 0000 0259"
@@ -16,6 +18,7 @@ const (
 
 type Service struct {
 	transactions map[string]transaction
+	sync.RWMutex
 }
 
 type AuthorizeOptions struct {
@@ -38,7 +41,9 @@ type Transaction struct {
 }
 
 func New() *Service {
-	return &Service{make(map[string]transaction)}
+	return &Service{
+		transactions: make(map[string]transaction),
+	}
 }
 
 func (s *Service) AuthorizePayment(options AuthorizeOptions) (string, error) {

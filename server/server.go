@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 
 	"net/http"
 	"os"
@@ -14,28 +15,30 @@ import (
 
 const prefix = "/api/v1/"
 
-func NewServer(gateway Gateway) {
+func NewServer(gateway Gateway, logger Logger) {
 	r := mux.NewRouter().
 		PathPrefix(prefix).
 		Subrouter()
 
-	r.Handle("/health-check", loggerMiddleware(handler.HealthEndpoint())).
+	r.Handle("/health-check", handler.HealthEndpoint(logger)).
 		Methods("GET")
 
-	r.Handle("/authorize", loggerMiddleware(handler.AuthorizeEndpoint(gateway, validate.Validate))).
+	r.Handle("/authorize", handler.AuthorizeEndpoint(gateway, logger, validate.Validate)).
 		Methods("POST")
 
-	r.Handle("/capture", loggerMiddleware(handler.CaptureEndpoint(gateway, validate.Validate))).
+	r.Handle("/capture", handler.CaptureEndpoint(gateway, logger, validate.Validate)).
 		Methods("POST")
 
-	r.Handle("/void", loggerMiddleware(handler.VoidEndpoint(gateway, validate.Validate))).
+	r.Handle("/void", handler.VoidEndpoint(gateway, logger, validate.Validate)).
 		Methods("POST")
 
-	r.Handle("/refund", loggerMiddleware(handler.RefundEndpoint(gateway, validate.Validate))).
+	r.Handle("/refund", handler.RefundEndpoint(gateway, logger, validate.Validate)).
 		Methods("POST")
 
-	r.Handle("/transactions", loggerMiddleware(handler.ListEndpoint(gateway, validate.Validate))).
+	r.Handle("/transactions", handler.ListEndpoint(gateway, logger, validate.Validate)).
 		Methods("GET")
+
+	r.Use(loggerMiddleware(logger))
 
 	srv := &http.Server{
 		Handler:      r,

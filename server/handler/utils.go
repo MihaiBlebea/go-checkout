@@ -5,10 +5,19 @@ import (
 	"net/http"
 )
 
-func sendResponse(w http.ResponseWriter, resp interface{}, code int) {
+func sendResponse(w http.ResponseWriter, resp interface{}, code int, logger Logger) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
 
-	json.NewEncoder(w).Encode(resp)
+	b, _ := json.Marshal(resp)
+
+	log := logger.Info
+
+	if code != 200 {
+		log = logger.Error
+	}
+
+	log(string(b))
+	w.Write(b)
 }

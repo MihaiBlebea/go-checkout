@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"net/http"
-
 	gtway "github.com/MihaiBlebea/go-checkout/gateway"
 )
 
@@ -16,4 +14,14 @@ type Gateway interface {
 
 type Validator func(t interface{}) error
 
-type ErrorResponse func(w http.ResponseWriter, err interface{}, code int)
+type Logger interface {
+	Info(args ...interface{})
+	Trace(args ...interface{})
+	Debug(args ...interface{})
+	Print(args ...interface{})
+	Warn(args ...interface{})
+	Warning(args ...interface{})
+	Error(args ...interface{})
+	Fatal(args ...interface{})
+	Panic(args ...interface{})
+}

@@ -25,7 +25,7 @@ type AuthorizeResponse struct {
 	Currency string `json:"currency,omitempty"`
 }
 
-func AuthorizeEndpoint(gateway Gateway, validator Validator) http.Handler {
+func AuthorizeEndpoint(gateway Gateway, logger Logger, validator Validator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := AuthorizeRequest{}
 		response := AuthorizeResponse{}
@@ -33,14 +33,14 @@ func AuthorizeEndpoint(gateway Gateway, validator Validator) http.Handler {
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			response.Message = err.Error()
-			sendResponse(w, response, http.StatusBadRequest)
+			sendResponse(w, response, http.StatusBadRequest, logger)
 			return
 		}
 
 		err = validator(&request)
 		if err != nil {
 			response.Message = err.Error()
-			sendResponse(w, response, http.StatusBadRequest)
+			sendResponse(w, response, http.StatusBadRequest, logger)
 			return
 		}
 
@@ -55,7 +55,7 @@ func AuthorizeEndpoint(gateway Gateway, validator Validator) http.Handler {
 		})
 		if err != nil {
 			response.Message = err.Error()
-			sendResponse(w, response, http.StatusBadRequest)
+			sendResponse(w, response, http.StatusBadRequest, logger)
 			return
 		}
 
@@ -63,6 +63,6 @@ func AuthorizeEndpoint(gateway Gateway, validator Validator) http.Handler {
 		response.Success = true
 		response.Amount = request.Amount
 		response.Currency = request.Currency
-		sendResponse(w, response, 200)
+		sendResponse(w, response, 200, logger)
 	})
 }

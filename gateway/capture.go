@@ -5,6 +5,9 @@ func (s *Service) captureAmount(id string, amount int, currency string) (int, st
 		return 0, "", err
 	}
 
+	s.Lock()
+	defer s.Unlock()
+
 	trans := s.transactions[id]
 
 	if trans.state == VoidState {

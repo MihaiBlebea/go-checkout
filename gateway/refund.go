@@ -5,6 +5,9 @@ func (s *Service) refundAmount(id string, amount int, currency string) (int, str
 		return 0, "", err
 	}
 
+	s.Lock()
+	defer s.Unlock()
+
 	trans := s.transactions[id]
 
 	if trans.state == VoidState {

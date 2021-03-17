@@ -5,6 +5,9 @@ func (s *Service) voidTransaction(id string) (int, string, error) {
 		return 0, "", err
 	}
 
+	s.Lock()
+	defer s.Unlock()
+
 	trans := s.transactions[id]
 
 	trans.state = VoidState

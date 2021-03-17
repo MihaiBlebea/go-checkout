@@ -55,6 +55,10 @@ func (s *Service) authorizePayment(options AuthorizeOptions) (string, error) {
 		amount:      options.Amount,
 		currency:    options.Currency,
 	}
+
+	s.Lock()
+	defer s.Unlock()
+
 	s.storeCard(trans)
 
 	return trans.id, nil

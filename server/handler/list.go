@@ -14,7 +14,7 @@ type ListResponse struct {
 	Transactions []gtway.Transaction `json:"transactions"`
 }
 
-func ListEndpoint(gateway Gateway, validator Validator) http.Handler {
+func ListEndpoint(gateway Gateway, logger Logger, validator Validator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := ListResponse{}
 
@@ -23,6 +23,6 @@ func ListEndpoint(gateway Gateway, validator Validator) http.Handler {
 		response.Success = true
 		response.Transactions = transactions
 
-		sendResponse(w, &response, http.StatusOK)
+		sendResponse(w, &response, http.StatusOK, logger)
 	})
 }

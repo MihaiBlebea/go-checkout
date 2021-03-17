@@ -18,7 +18,7 @@ type RefundResponse struct {
 	Currency  string `json:"currency,omitempty"`
 }
 
-func RefundEndpoint(gateway Gateway, validator Validator) http.Handler {
+func RefundEndpoint(gateway Gateway, logger Logger, validator Validator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := RefundRequest{}
 		response := RefundResponse{}
@@ -27,20 +27,20 @@ func RefundEndpoint(gateway Gateway, validator Validator) http.Handler {
 		if err != nil {
 			response.Message = err.Error()
 			response.Success = false
-			sendResponse(w, response, http.StatusBadRequest)
+			sendResponse(w, response, http.StatusBadRequest, logger)
 			return
 		}
 
 		remain, currency, err := gateway.RefundAmount(request.ID, request.Amount, request.Currency)
 		if err != nil {
 			response.Message = err.Error()
-			sendResponse(w, &response, http.StatusBadRequest)
+			sendResponse(w, &response, http.StatusBadRequest, logger)
 			return
 		}
 
 		response.Success = true
 		response.Remaining = remain
 		response.Currency = currency
-		sendResponse(w, &response, http.StatusOK)
+		sendResponse(w, &response, http.StatusOK, logger)
 	})
 }

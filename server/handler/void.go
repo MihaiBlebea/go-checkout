@@ -16,7 +16,7 @@ type VoidResponse struct {
 	Currency string `json:"currency,omitempty"`
 }
 
-func VoidEndpoint(gateway Gateway, validator Validator) http.Handler {
+func VoidEndpoint(gateway Gateway, logger Logger, validator Validator) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := VoidRequest{}
 		response := VoidResponse{}
@@ -24,20 +24,20 @@ func VoidEndpoint(gateway Gateway, validator Validator) http.Handler {
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			response.Message = err.Error()
-			sendResponse(w, response, http.StatusBadRequest)
+			sendResponse(w, response, http.StatusBadRequest, logger)
 			return
 		}
 
 		balance, currency, err := gateway.VoidTransaction(request.ID)
 		if err != nil {
 			response.Message = err.Error()
-			sendResponse(w, &response, http.StatusBadRequest)
+			sendResponse(w, &response, http.StatusBadRequest, logger)
 			return
 		}
 
 		response.Success = true
 		response.Balance = balance
 		response.Currency = currency
-		sendResponse(w, &response, http.StatusOK)
+		sendResponse(w, &response, http.StatusOK, logger)
 	})
 }
