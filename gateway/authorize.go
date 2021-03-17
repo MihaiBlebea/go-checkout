@@ -6,20 +6,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-const (
-	AuthFailCard    string = "4000 0000 0000 0119"
-	CaptureFailCard string = "4000 0000 0000 0259"
-	RefundFailCard  string = "4000 0000 0000 3238"
-)
-
-type TransactioState int
-
-const (
-	CaptureState TransactioState = iota
-	RefundState
-	VoidState
-)
-
 type transaction struct {
 	id          string
 	state       TransactioState
@@ -40,6 +26,18 @@ func (s *Service) authorizePayment(options AuthorizeOptions) (string, error) {
 	}
 
 	if err := validateCardNumber(options.CardNumber); err != nil {
+		return "", err
+	}
+
+	if err := validateNameOnCard(options.NameOnCard); err != nil {
+		return "", err
+	}
+
+	if err := validateCVV(options.CVV); err != nil {
+		return "", err
+	}
+
+	if err := validateAmount(options.Amount); err != nil {
 		return "", err
 	}
 

@@ -7,7 +7,7 @@ func (s *Service) refundAmount(id string, amount int, currency string) (int, str
 
 	trans := s.transactions[id]
 
-	if trans.state != VoidState {
+	if trans.state == VoidState {
 		return 0, "", TransactionVoidedErr
 	}
 

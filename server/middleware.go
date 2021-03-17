@@ -10,7 +10,6 @@ import (
 var log = logrus.New()
 
 func init() {
-
 	log.SetFormatter(&logrus.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 	log.SetLevel(logrus.InfoLevel)

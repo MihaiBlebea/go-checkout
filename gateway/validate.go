@@ -9,14 +9,48 @@ import (
 )
 
 var (
-	InvalidTransactionErr error = errors.New("Invalid transaction id")
-	UnavailableAmountErr  error = errors.New("Unavailable amount")
-	InvalidCurrencyErr    error = errors.New("Invalid currency")
-	TransactionVoidedErr  error = errors.New("Transaction is voided")
-	ExpiredCardErr        error = errors.New("Card is expired")
-	InvalidCardNumberErr  error = errors.New("Card number is invalid")
-	AuthFailedErr         error = errors.New("Authorisation failed")
+	InvalidTransactionErr  = errors.New("Invalid transaction id")
+	InvalidAmountErr       = errors.New("Invalid payment amount id")
+	InvalidNameOnCardErr   = errors.New("Invalid name on card")
+	InvalidCvvErr          = errors.New("Invalid cvv. Must be 3 characters long")
+	UnavailableAmountErr   = errors.New("Unavailable amount")
+	InvalidCurrencyErr     = errors.New("Invalid currency")
+	TransactionVoidedErr   = errors.New("Transaction is voided")
+	TransactionRefundedErr = errors.New("Transaction is refunded")
+	ExpiredCardErr         = errors.New("Card is expired")
+	InvalidCardNumberErr   = errors.New("Card number is invalid")
+	AuthFailedErr          = errors.New("Authorisation failed")
 )
+
+func validateNameOnCard(name string) error {
+	if strings.Contains(name, " ") == false {
+		return InvalidNameOnCardErr
+	}
+
+	letters := strings.Split(strings.ReplaceAll(name, " ", ""), "")
+	if len(letters) < 4 {
+		return InvalidNameOnCardErr
+	}
+
+	return nil
+}
+
+func validateCVV(cvv string) error {
+	re := regexp.MustCompile(`^[0-9]{3}$`)
+	if re.MatchString(cvv) == false {
+		return InvalidCvvErr
+	}
+
+	return nil
+}
+
+func validateAmount(amount int) error {
+	if amount == 0 {
+		return InvalidAmountErr
+	}
+
+	return nil
+}
 
 func validateTransactionID(transactions map[string]transaction, id string) error {
 	_, ok := transactions[id]

@@ -1,5 +1,19 @@
 package gateway
 
+const (
+	AuthFailCard    string = "4000 0000 0000 0119"
+	CaptureFailCard string = "4000 0000 0000 0259"
+	RefundFailCard  string = "4000 0000 0000 3238"
+)
+
+type TransactioState int
+
+const (
+	CaptureState TransactioState = iota
+	RefundState
+	VoidState
+)
+
 type Service struct {
 	transactions map[string]transaction
 }

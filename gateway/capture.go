@@ -7,8 +7,12 @@ func (s *Service) captureAmount(id string, amount int, currency string) (int, st
 
 	trans := s.transactions[id]
 
-	if trans.state != CaptureState {
+	if trans.state == VoidState {
 		return 0, "", TransactionVoidedErr
+	}
+
+	if trans.state == RefundState {
+		return 0, "", TransactionRefundedErr
 	}
 
 	trans.captured += amount

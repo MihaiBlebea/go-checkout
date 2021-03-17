@@ -11,5 +11,5 @@ func (s *Service) voidTransaction(id string) (int, string, error) {
 
 	s.transactions[id] = trans
 
-	return trans.captured, trans.currency, nil
+	return calcRemainRefundAmount(&trans), trans.currency, nil
 }
