@@ -1,11 +1,10 @@
+# Build container
 FROM golang:1.16.2-buster AS build_base
 
 RUN apt-get install git
 
-# Set the Current Working Directory inside the container
 WORKDIR /tmp/app
 
-# We want to populate the module cache based on the go.{mod,sum} files.
 COPY go.mod .
 COPY go.sum .
 
@@ -16,10 +15,9 @@ COPY . .
 # Unit tests
 RUN CGO_ENABLED=0 go test -v
 
-# Build the Go app
-RUN go build -o ./out/lambda .
+RUN go build -o ./out/checkout .
 
-# Start fresh from a smaller image
+# Start fresh from a smaller image for the runtime container
 FROM debian:buster
 
 RUN apt-get update \
@@ -29,11 +27,10 @@ RUN update-ca-certificates
 
 WORKDIR /app
 
-COPY --from=build_base /tmp/app/out/lambda /app/lambda
+USER nobody
 
-# VOLUME ["/var/run/docker.sock"]
+COPY --from=build_base --chown=nobody /tmp/app/out/checkout /app/checkout
 
-EXPOSE ${DASHBOARD_HTTP_PORT}
-EXPOSE ${WEBHOOK_HTTP_PORT}
+EXPOSE ${HTTP_PORT}
 
-CMD ["./lambda", "webhook"]
+CMD ["./checkout", "start"]
