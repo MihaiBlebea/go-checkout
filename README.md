@@ -157,3 +157,58 @@ The project contains 2 major packages witch handle different parts of the applic
         ]
     }
     ```
+
+### Server package
+
+Main entry point in the `server` package is the `server.go` file that exposes a simple `NewServer` method which accepts a `gateway` service and a `logger` service, both represented by an interface situated in the `contracts.go` file.
+
+The port adaptor pattern works great with the Go inferred interface and offers a much more decoupled solution compared with other languages that require a specified interface and a "middle-man" class to act as the adaptor. The downside of this implementation is that we lose the adaptor layer that could be used to map different parameters between the port and the third party service.
+
+To mitigate this loss, we could bring in a decorator for the third party service which is used to map params between the port and the third party service.
+
+The logging middleware is situated in the `middleware.go` file and it integrates nicely with the gorilla/mux package that handles the http server.
+
+Inside the server package we also have the validate sub-package that provides a nice `tag` based validation to account for the required params in the request body. This can be easily extended to provide more custom tags or rules. For this example I kept this minimal and just implemented a check for required fields. In case of needing a more complex solution this could be broken into individual validators which could be called behind a factory.
+
+The `handler` package inside the main`server` package offers a nice abstraction for the http handlers needed by the http "framework". It also contains a `contracts.go` file which defines the necesary interfaces that need to be implemented by it's dependencies.
+
+### Gateway package
+
+The gateway package acts like the domain package in this appliation defining all the business rules.
+
+The `api.go` file represents the entry point in this package and defines all the exposed methods and structs.
+
+I have chosen a "decorator" pattern to wrap the private methods and expose them outside of the `gateway` package. This would be a good start to add logging in this layer. I considered this approach but decided against it as it would have created a lot of noise and would have made tracking logs a bit more dificult with so many layers loging the same thing. Definetely worth adding for a bigger and more complex application.
+
+I decided to not link all the methods in the package to the main service struct, as that would have made testing a bit more complex. This is a pattern that I grew very fond of and I think it combines the best out of both worlds, making tests easier to implement (similar to functional languages) and also allow for a more "OOP" friendly code (not really sure how to call it).
+
+I chose to implement the gateway application in memory so this test dos not contain a database or a persistence layer. I considered adding a database but decided against it, as I think this makes the test a bit more interesting and brings some nice problems to solve. For example:
+
+- race conditions reading and writing to the `transactions` map. To mitigate the risk I chosen a mutex lock that we can lock and unlock before reading and writing to it. I chosen to lock just the reads in some of the cases.
+
+- persistence issue: one solution to further add persistence (database) would be to use composition to extend the functionality of the gateway package service. Consider this:
+
+```Go
+package persistgtway // from persistent gateway :)
+
+import (
+    gtway "github.com/MihaiBlebea/go-checkout/gateway"
+)
+type PersistentGateway struct {
+    Gateway
+    *gorm.DB // or any other orm
+}
+
+func (ps *PersistentGateway) AuthorizePayment(options gtway.AuthorizeOptions) (string, error) {
+	id, err := ps.AuthorizePayment(options)
+    if err != nil {
+        return "", err
+    }
+
+    transactions := ps.ListTransactions()
+
+    // persist the transaction into database
+
+    return id, nil
+}
+```
