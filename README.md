@@ -215,9 +215,9 @@ func (ps *PersistentGateway) AuthorizePayment(options gtway.AuthorizeOptions) (s
 
 ## Improvements and TO-DOs
 
-- [] Add more tests and better cover the API endpoints. Not very happy of the API test coverage.
-- [] Add persistence layer using gorm or any other ORM abstracted behind repositoris.
-- [] Add auth for the API endpoints and limit access based on merchant.
-- [] Better handle the void case, as I am not vry familliar with how the void state would affect the transaction I left the money in the transaction and not updated it's captured and refunded field. Not sure if refunding all the captured amounts as part of the void process would work.
-- [] Better handle the states of the transaction using a state machine and a set of simple rules for what can and cannot happen depending on current state of the transaction.
-- [] Improve the sandbox cards logic.
+-[] Add more tests and better cover the API endpoints. Not very happy of the API test coverage.
+-[] Add persistence layer using gorm or any other ORM abstracted behind repositoris.
+-[] Add auth for the API endpoints and limit access based on merchant.
+-[] Better handle the void case, as I am not vry familliar with how the void state would affect the transaction I left the money in the transaction and not updated it's captured and refunded field. Not sure if refunding all the captured amounts as part of the void process would work.
+-[] Better handle the states of the transaction using a state machine and a set of simple rules for what can and cannot happen depending on current state of the transaction.
+-[] Improve the sandbox cards logic.
