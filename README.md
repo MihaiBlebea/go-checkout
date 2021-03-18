@@ -35,7 +35,7 @@ The project contains 2 major packages witch handle different parts of the applic
         "ok": true
     }
     ```
-- POST `/api/v1/authorize` - authorizes a transaction on the user card
+- POST `/api/v1/authorize` - authorizes a transaction on the user card. `expire_year` and `expire_month` are supplied as integers, while the `cvv` field is a string as it does not represent a quantity. Amount is calculated in pennies for precision, so `200` is £2.
     - input:
     ```json
     {
@@ -64,7 +64,7 @@ The project contains 2 major packages witch handle different parts of the applic
         "message": "Invalid name on card"
     }
     ```
-- POST `/api/v1/capture` - captures funds authorized by the previous endpoint
+- POST `/api/v1/capture` - captures funds authorized by the previous endpoint. Using the id from the previous endpoint and an amount in pennies, you can start capturing funds on the user credit card. Remaining amount in response represent the funds remaining to be captured on the user card.
     - input:
     ```json
     {
@@ -87,6 +87,73 @@ The project contains 2 major packages witch handle different parts of the applic
         "message": "Unavailable amount"
     }
     ```
-- POST `/api/v1/refund` - refunds the funds captured
-- POST `/api/v1/void` - voids a transaction
-- GET `/api/v1/list` - lists all transactions in the payment gateway
+- POST `/api/v1/refund` - refunds the funds captured. Using the id of the transaction and an ammount in pennies, you can refund the money captured previously on the user card. The refund amount cannot be greater then the one captured. Remaining field on the response specifies the funds remaining to be refunded. Once a transaction is put in refund state (by creating a first refund) no capture operation is allowed.
+    - input:
+    ```json
+    {
+        "id": "9e15a26e-a139-4f16-914c-ab7783ba1495",
+        "amount": 5
+    }
+    ```
+    - success output:
+    ```json
+    {
+        "success": true,
+        "remaining": 15,
+        "currency": "GBP"
+    }
+    ```
+    - fail output:
+    ```json
+    {
+        "success": false,
+        "message": "Unavailable amount"
+    }
+    ```
+- POST `/api/v1/void` - voids a transaction. Using the id of the transaction you can void a payment. Once th payment is voided, no other operations are permitted. The `balance` field on the response represents the amount remaining to be refunded to the user.
+    - input:
+    ```json
+    {
+        "id": "9e15a26e-a139-4f16-914c-ab7783ba1495",
+    }
+    ```
+    - success output:
+    ```json
+    {
+        "success": true,
+        "balance": 15,
+        "currency": "GBP"
+    }
+    ```
+    - fail output:
+    ```json
+    {
+        "success": false,
+        "message": "Unavailable amount"
+    }
+    ```
+- GET `/api/v1/list` - lists all transactions in the payment gateway. List all transactions made using the payment gateway. Notice that the id of the transactions is returned with the response, in case of a production gateway this should be truncated for security reasons or put behind a merchant auth system.
+    - output:
+    ```json
+    {
+        "success": true,
+        "transactions": [
+            {
+                "id": "348233c3-9aff-47d8-9fba-483b2b2e27cc",
+                "state": 0,
+                "amount": 200,
+                "captured": 0,
+                "refunded": 0,
+                "currency": "GBP"
+            },
+            {
+                "id": "292ab873-4c07-4f5e-ba59-9902d563c3be",
+                "state": 0,
+                "amount": 200,
+                "captured": 0,
+                "refunded": 0,
+                "currency": "GBP"
+            }
+        ]
+    }
+    ```
