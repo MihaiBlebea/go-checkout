@@ -2,3 +2,5 @@
 vendor
 .vscode
 checkout
+cover.out
+cover.html

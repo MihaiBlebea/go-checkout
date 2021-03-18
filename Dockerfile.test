@@ -1,0 +1,16 @@
+FROM golang:1.16.2-buster AS build_base
+
+RUN apt-get install git
+
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+# Unit tests
+ENTRYPOINT ["go", "test", "-v", "./...", "-coverprofile", "cover.out"]
+
