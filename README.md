@@ -22,16 +22,71 @@ Steps to run locally:
 
 ## Technical decisions and architecture
 
-1. The project contains 2 major packages witch handle different parts of the application. The `server` is in charge of serving the API through an http server. It exposes 6 endpoints:
-    - GET `/api/v1/health-check` - simple health check endpoint
-        - output:
-        ```json
-        {
-            "ok": true
-        }
-        ```
-    - POST `/api/v1/authorize` - authorizes a transaction on the user card
-    - POST `/api/v1/capture` - captures funds authorized by the previous endpoint
-    - POST `/api/v1/refund` - refunds the funds captured
-    - POST `/api/v1/void` - voids a transaction
-    - GET `/api/v1/list` - lists all transactions in the payment gateway
+The project contains 2 major packages witch handle different parts of the application:
+- server
+- gateway
+
+### API endpoints
+
+- GET `/api/v1/health-check` - simple health check endpoint
+    - output:
+    ```json
+    {
+        "ok": true
+    }
+    ```
+- POST `/api/v1/authorize` - authorizes a transaction on the user card
+    - input:
+    ```json
+    {
+        "name_on_card": "John Doe",
+        "card_number": "4111 1111 1111 1111",
+        "expire_year": 2022,
+        "expire_month": 4,
+        "cvv": "755",
+        "amount": 200,
+        "currency": "GBP"
+    }
+    ```
+    - success output:
+    ```json
+    {
+        "id": "292ab873-4c07-4f5e-ba59-9902d563c3be",
+        "success": true,
+        "amount": 200,
+        "currency": "GBP"
+    }
+    ```
+    - fail output:
+    ```json
+    {
+        "success": false,
+        "message": "Invalid name on card"
+    }
+    ```
+- POST `/api/v1/capture` - captures funds authorized by the previous endpoint
+    - input:
+    ```json
+    {
+        "id": "1117bbb5-4772-4065-a8f5-5f3134afe299",
+        "amount": 20
+    }
+    ```
+    - success output:
+    ```json
+    {
+        "success": true,
+        "remaining": 180,
+        "currency": "GBP"
+    }
+    ```
+    - fail output:
+    ```json
+    {
+        "success": false,
+        "message": "Unavailable amount"
+    }
+    ```
+- POST `/api/v1/refund` - refunds the funds captured
+- POST `/api/v1/void` - voids a transaction
+- GET `/api/v1/list` - lists all transactions in the payment gateway
