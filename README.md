@@ -24,7 +24,7 @@ Steps to run locally:
 
 The project contains 2 major packages witch handle different parts of the application:
 - server
-- gateway
+- gateway + sandbox_gateway (wrapper)
 
 ### API endpoints
 
@@ -221,3 +221,4 @@ func (ps *PersistentGateway) AuthorizePayment(options gtway.AuthorizeOptions) (s
 - [ ] Better handle the void case, as I am not vry familliar with how the void state would affect the transaction I left the money in the transaction and not updated it's captured and refunded field. Not sure if refunding all the captured amounts as part of the void process would work.
 - [ ] Better handle the states of the transaction using a state machine and a set of simple rules for what can and cannot happen depending on current state of the transaction.
 - [ ] Improve the sandbox cards logic.
+- [ ] Improve logging and allow for custom params 

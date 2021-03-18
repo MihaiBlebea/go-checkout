@@ -20,6 +20,8 @@ var (
 	ExpiredCardErr         = errors.New("Card is expired")
 	InvalidCardNumberErr   = errors.New("Card number is invalid")
 	AuthFailedErr          = errors.New("Authorisation failed")
+	CaptureFailedErr       = errors.New("Capture failed")
+	RefundFailedErr        = errors.New("Refund failed")
 )
 
 func validateNameOnCard(name string) error {

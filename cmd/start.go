@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	gtway "github.com/MihaiBlebea/go-checkout/gateway"
+	sandbox "github.com/MihaiBlebea/go-checkout/sandbox_gateway"
 	"github.com/MihaiBlebea/go-checkout/server"
 )
 
@@ -28,7 +29,9 @@ var startCmd = &cobra.Command{
 
 		gateway := gtway.New()
 
-		server.NewServer(gateway, l)
+		sandboxGateway := sandbox.New(gateway)
+
+		server.NewServer(sandboxGateway, l)
 
 		return nil
 	},

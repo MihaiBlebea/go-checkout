@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	gtway "github.com/MihaiBlebea/go-checkout/gateway"
+	sandbox "github.com/MihaiBlebea/go-checkout/sandbox_gateway"
 	"github.com/MihaiBlebea/go-checkout/server/handler"
 	hand "github.com/MihaiBlebea/go-checkout/server/handler"
 	"github.com/MihaiBlebea/go-checkout/server/validate"
@@ -107,6 +108,22 @@ func TestAuthorizeEndpoint(t *testing.T) {
 		Currency: "",
 	}
 
+	requestMissingStringKey := hand.AuthorizeRequest{
+		NameOnCard:  "Mihai Blebea",
+		CardNumber:  "4000 0000 0000 0119",
+		ExpireYear:  2022,
+		ExpireMonth: 4,
+		Amount:      200,
+		Currency:    "GBP",
+	}
+
+	responseMissingStringKey := hand.AuthorizeResponse{
+		Success:  false,
+		Message:  "Field CVV is required",
+		Amount:   0,
+		Currency: "",
+	}
+
 	cases := []struct {
 		input hand.AuthorizeRequest
 		want  hand.AuthorizeResponse
@@ -127,6 +144,11 @@ func TestAuthorizeEndpoint(t *testing.T) {
 			want:  responseMissingKey,
 			code:  400,
 		},
+		{
+			input: requestMissingStringKey,
+			want:  responseMissingStringKey,
+			code:  400,
+		},
 	}
 
 	for _, c := range cases {
@@ -140,9 +162,12 @@ func TestAuthorizeEndpoint(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// failed card aware gateway
+		g := sandbox.New(gtway.New())
+
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(
-			hand.AuthorizeEndpoint(gtway.New(), logger, validate.Validate).ServeHTTP,
+			hand.AuthorizeEndpoint(g, logger, validate.Validate).ServeHTTP,
 		)
 
 		handler.ServeHTTP(rr, req)

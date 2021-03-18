@@ -59,16 +59,6 @@ func TestAuthorizePayment(t *testing.T) {
 		Currency:    "GBP",
 	}
 
-	failAuthCardCase := gateway.AuthorizeOptions{
-		NameOnCard:  "Mihai Blebea",
-		CardNumber:  "4000 0000 0000 0119",
-		ExpireYear:  2099,
-		ExpireMonth: 7,
-		CVV:         "557",
-		Amount:      200,
-		Currency:    "GBP",
-	}
-
 	successCase := gateway.AuthorizeOptions{
 		NameOnCard:  "Mihai Blebea",
 		CardNumber:  "4000 0000 0000 0259",
@@ -114,12 +104,6 @@ func TestAuthorizePayment(t *testing.T) {
 			input: invalidAmountCase,
 			hasID: false,
 			err:   gateway.InvalidAmountErr,
-		},
-		{
-			title: "Transaction with sandbox fail auth card case",
-			input: failAuthCardCase,
-			hasID: false,
-			err:   gateway.AuthFailedErr,
 		},
 		{
 			title: "Success case",

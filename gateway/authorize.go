@@ -1,8 +1,6 @@
 package gateway
 
 import (
-	"strings"
-
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -41,10 +39,6 @@ func (s *Service) authorizePayment(options AuthorizeOptions) (string, error) {
 		return "", err
 	}
 
-	if isSandboxCard(options.CardNumber) {
-		return "", AuthFailedErr
-	}
-
 	trans := transaction{
 		id:          genToken(),
 		nameOnCard:  options.NameOnCard,
@@ -62,14 +56,6 @@ func (s *Service) authorizePayment(options AuthorizeOptions) (string, error) {
 	s.storeCard(trans)
 
 	return trans.id, nil
-}
-
-// TODO: move this to it's own module or file (consolidate)
-func isSandboxCard(cardNumber string) bool {
-	cardNum := strings.ReplaceAll(cardNumber, " ", "")
-	sandoxCardNum := strings.ReplaceAll(AuthFailCard, " ", "")
-
-	return cardNum == sandoxCardNum
 }
 
 func genToken() string {

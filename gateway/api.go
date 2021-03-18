@@ -2,12 +2,6 @@ package gateway
 
 import "sync"
 
-const (
-	AuthFailCard    string = "4000 0000 0000 0119"
-	CaptureFailCard string = "4000 0000 0000 0259"
-	RefundFailCard  string = "4000 0000 0000 3238"
-)
-
 type TransactioState int
 
 const (
@@ -64,4 +58,8 @@ func (s *Service) RefundAmount(id string, amount int, currency string) (int, str
 
 func (s *Service) ListTransactions() []Transaction {
 	return s.list()
+}
+
+func (s *Service) GetCardNumber(id string) (string, error) {
+	return s.getCardNumber(id)
 }
